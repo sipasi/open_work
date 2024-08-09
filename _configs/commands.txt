@@ -1,0 +1,6 @@
+### Build
+    Web Demo GitHub Pages: 
+        flutter build web --base-href "/open-work/" --release
+
+### Configs 
+    dart run icons_launcher:create --path _configs/icons_launcher.yaml
