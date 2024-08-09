@@ -1,0 +1,118 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Open Work Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-apk-appbundle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test -r expanded
+
+      - name: Build apk
+        run: flutter build apk
+
+      - name: Build appbundle
+        run: flutter build appbundle
+
+      - name: Upload apk to release
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload aab to release
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test -r expanded
+
+      - name: Build windows
+        run: flutter build windows
+
+      - name: Upload windows to release
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: build/windows/x64/runner/Release/
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Set up Linux
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test -r expanded
+
+      - name: Build Linux
+        run: flutter build linux
+
+      - name: Upload linux to release
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: build/linux/x64/release/bundle/
+
+  download:
+    runs-on: ubuntu-latest
+    needs: [build-apk-appbundle, build-windows, build-linux]
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+      - name: Display structure of downloaded files
+        run: ls -R
