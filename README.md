@@ -1,3 +1,6 @@
+[![Open Work Build](https://github.com/sipasi/open_work/actions/workflows/build.yml/badge.svg)](https://github.com/sipasi/open_work/actions/workflows/build.yml)
+[![Deploy Github Pages](https://github.com/sipasi/open_work/actions/workflows/deploy-github-pages.yml/badge.svg)](https://github.com/sipasi/open_work/actions/workflows/deploy-github-pages.yml)
+
 # OpenWork
 **OpenWork** is a versatile application designed to **streamline** work tracking and financial calculations. With **OpenWork**, you can efficiently **manage** and **summarize** your work **activities** and related **earnings**. With a **focus** on **simplicity** and **efficiency**.
 
