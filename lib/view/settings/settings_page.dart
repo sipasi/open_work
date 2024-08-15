@@ -48,6 +48,14 @@ class SettingsPageState extends State<SettingsPage> {
         ),
         const Divider(),
         ListTile(
+          leading: const Icon(Icons.file_download_outlined),
+          title: OutlinedButton(
+            child: const Text('Migration'),
+            onPressed: () => viewmodel.toMigration(context),
+          ),
+        ),
+        const Divider(),
+        ListTile(
           leading: const Icon(Icons.summarize_outlined),
           title: OutlinedButton(
             child: const Text('Summarize All'),

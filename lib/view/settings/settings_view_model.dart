@@ -5,6 +5,7 @@ import 'package:open_work_flutter/storage/month_storage.dart';
 import 'package:open_work_flutter/storage/type_storage.dart';
 import 'package:open_work_flutter/view/settings/export/export_page.dart';
 import 'package:open_work_flutter/view/settings/import/import_page.dart';
+import 'package:open_work_flutter/view/settings/migration/old_models_migration_page.dart';
 import 'package:open_work_flutter/view/settings/theme_controller.dart';
 import 'package:open_work_flutter/view/shared/dialogs/delete_dialog.dart';
 import 'package:open_work_flutter/view/shared/dialogs/waiting_dialog.dart';
@@ -21,6 +22,9 @@ class SettingsViewModel {
       MaterialNavigator.push(context, (context) => const ImportPage());
   Future toExport(BuildContext context) =>
       MaterialNavigator.push(context, (context) => const ExportPage());
+
+  Future toMigration(BuildContext context) => MaterialNavigator.push(
+      context, (context) => const OldModelsMigrationPage());
 
   Future toSummarizeAll(BuildContext context) =>
       MaterialNavigator.push(context, (context) => const AllSummaryView());
