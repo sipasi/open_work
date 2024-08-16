@@ -139,6 +139,7 @@ class WorkMonthEditViewModel {
 
     return DeleteDialog.show(
       context: context,
+      title: 'Changes',
       body: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
