@@ -6,6 +6,7 @@ class TextEditField extends StatelessWidget {
 
   final void Function(String value)? onChanged;
   final void Function(String value)? onSubmit;
+  final void Function()? onEditingComplete;
 
   final String? label;
   final String? hint;
@@ -21,6 +22,7 @@ class TextEditField extends StatelessWidget {
     required this.controller,
     this.onChanged,
     this.onSubmit,
+    this.onEditingComplete,
     this.label,
     this.hint,
     this.border,
@@ -39,6 +41,7 @@ class TextEditField extends StatelessWidget {
       maxLines: maxLines,
       onChanged: onChanged,
       onSubmitted: onSubmit,
+      onEditingComplete: onEditingComplete,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

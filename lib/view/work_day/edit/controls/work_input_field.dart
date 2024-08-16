@@ -41,6 +41,7 @@ class _WorkInputFieldState extends State<WorkInputField> {
       keyboardType: keyboardType,
       onChanged: _onChanged,
       onSubmit: (value) => _onSubmit(),
+      onEditingComplete: () {},
     );
   }
 
