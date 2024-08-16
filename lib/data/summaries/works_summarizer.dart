@@ -48,10 +48,17 @@ class WorksSummarizer {
     final infos = map.entries.map((e) {
       return WorkInfo(
         e.key,
-        e.value.entries.map((e) => e.value).toList(),
+        e.value.entries.map((e) => e.value).toList()..sort(compareIgnoreCase),
       );
     });
 
     return infos.toList();
+  }
+
+  static int compareIgnoreCase(UnitDaysPairs left, UnitDaysPairs right) {
+    final leftLower = left.unit.value.toLowerCase();
+    final rightLower = right.unit.value.toLowerCase();
+
+    return leftLower.compareTo(rightLower);
   }
 }
