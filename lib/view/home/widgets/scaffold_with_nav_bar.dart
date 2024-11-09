@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:open_work_flutter/view/home/app_navigation_bar.dart';
 import 'package:open_work_flutter/view/shared/layouts/constraints_adaptive_layout.dart';
+
+import 'app_navigation_bar.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   final AppNavigationBar navigationBar;

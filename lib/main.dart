@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_work_flutter/services/dependency/dependency_setter.dart';
 import 'package:open_work_flutter/theme/app_theme.dart';
 import 'package:open_work_flutter/theme/theme_storage.dart';
 import 'package:open_work_flutter/theme/theme_switcher.dart';
 import 'package:open_work_flutter/theme/theme_switcher_widget.dart';
+import 'package:open_work_flutter/view/home/cubit/home_cubit.dart';
 import 'package:open_work_flutter/view/home/home_page.dart';
 
 void main() async {
@@ -34,7 +36,12 @@ class OpenWorkApp extends StatelessWidget {
       themeMode: theme.mode,
       theme: theme.asLight(),
       darkTheme: theme.asDark(),
-      home: const HomePage(),
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => HomeCubit()),
+        ],
+        child: const HomePage(),
+      ),
     );
   }
 }
