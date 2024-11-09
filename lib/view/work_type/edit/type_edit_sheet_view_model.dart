@@ -1,73 +1,66 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-
-import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:open_work_flutter/data/models/calculation_type.dart';
 import 'package:open_work_flutter/data/models/work_type.dart';
-import 'package:open_work_flutter/services/navigation/material_navigator.dart';
 import 'package:open_work_flutter/storage/type_storage.dart';
-import 'package:open_work_flutter/view/shared/input_fields/text_edit_controller.dart';
 
 class TypeEditSheetViewModel {
+  final int? _id;
+  final TypeStorage _typeStorage;
+
+  String _name;
+  String _price;
   CalculationType _calculation;
 
-  final storage = GetIt.I.get<TypeStorage>();
-
-  final TextEditController nameEdit;
-  final TextEditController priceEdit;
-
-  final WorkType? entity;
-
-  final String operationType;
-
+  String get name => _name;
+  String get price => _price;
   CalculationType get calculation => _calculation;
 
-  TypeEditSheetViewModel(this.entity)
-      : _calculation = entity?.calculation ?? CalculationType.itemsCount,
-        operationType = entity?.id == null ? 'Create' : 'Edit',
-        nameEdit = TextEditController.text(text: entity?.name),
-        priceEdit = TextEditController.text(text: entity?.price.toString());
+  bool get canSubmit => _name.trim().isNotEmpty && _price.trim().isNotEmpty;
 
-  Future onSave(BuildContext context) async {
-    if (nameEdit.text.isEmpty) {
-      nameEdit.setErrorIfEmpty();
+  TypeEditSheetViewModel({
+    required TypeStorage typeStorage,
+    required WorkType? entity,
+  })  : _typeStorage = typeStorage,
+        _id = entity?.id,
+        _name = entity?.name ?? '',
+        _price = entity?.price.toString() ?? '',
+        _calculation = entity?.calculation ?? CalculationType.itemsCount;
 
-      return;
+  void setCalculation(CalculationType value) => _calculation = value;
+
+  void setName(String value) => _name = value;
+
+  void setPrice(String value) => _price = value;
+
+  Future<bool> trySubmit() async {
+    final trimmedName = _name.trim();
+
+    if (trimmedName.isEmpty) {
+      return false;
     }
 
-    String correct = priceEdit.text.replaceAll(RegExp(','), '.');
-
-    double? price = double.tryParse(correct);
+    double? price = double.tryParse(_price);
 
     if (price == null) {
-      priceEdit.setError('Number can\'t be parce');
-
-      return;
+      return false;
     }
 
     WorkType type = WorkType(
-      id: entity?.id,
-      name: nameEdit.text,
+      id: _id,
+      name: trimmedName,
       price: price,
       calculation: _calculation,
     );
 
-    await storage.updateOrCreate(type);
+    await _typeStorage.updateOrCreate(type);
 
-    if (context.mounted) {
-      MaterialNavigator.pop(context);
-    }
+    return true;
   }
 
-  Future onDelete(BuildContext context) async {
-    if (entity?.id == null) {
+  Future tryDelete() async {
+    if (_id == null) {
       return;
     }
 
-    await storage.delete(entity!.id!);
-
-    if (context.mounted) MaterialNavigator.pop(context);
+    await _typeStorage.delete(_id);
   }
-
-  void setCalculation(CalculationType value) => _calculation = value;
 }
