@@ -1,69 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:open_work_flutter/storage/type_storage.dart';
+import 'package:open_work_flutter/data/models/work_type.dart';
+import 'package:open_work_flutter/view/shared/bloc/global_key_bloc_reader.dart';
 import 'package:open_work_flutter/view/shared/layouts/adaptive_grid_view.dart';
-import 'package:open_work_flutter/view/shared/tiles/stretched_tile.dart';
+import 'package:open_work_flutter/view/work_type/edit/type_edit_sheet.dart';
+import 'package:open_work_flutter/view/work_type/list/bloc/work_type_list_bloc.dart';
+import 'package:open_work_flutter/view/work_type/list/widgets/work_type_tile.dart';
 
-import 'work_type_list_view_model.dart';
+class WorkTypeListPage extends StatelessWidget {
+  // fix - Looking up a deactivated widget's ancestor is unsafe.
+  // allow access to new BuildContext when change app orientation
+  final GlobalKey _contextAccessKey = GlobalKey();
 
-class WorkTypeListPage extends StatefulWidget {
-  const WorkTypeListPage({super.key});
+  WorkTypeListPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => _WorkTypeListPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) {
+        return WorkTypeListBloc(GetIt.I.get())
+          ..add(WorkTypeListLoadRequested());
+      },
+      child: WorkTypeListView(contextAccessKey: _contextAccessKey),
+    );
+  }
 }
 
-class _WorkTypeListPageState extends State<WorkTypeListPage> {
-  final viewmodel = WorkTypeListViewModel(GetIt.I.get<TypeStorage>());
-
-  @override
-  void initState() {
-    super.initState();
-
-    viewmodel.loadAll().then((value) => setState(() {}));
-  }
+class WorkTypeListView extends StatelessWidget {
+  const WorkTypeListView({required GlobalKey contextAccessKey})
+      : super(key: contextAccessKey);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AdaptiveGridView(
-        padding: const EdgeInsets.all(10).copyWith(bottom: 75),
-        children: List.generate(viewmodel.types.length, _tile),
+      body: BlocBuilder<WorkTypeListBloc, WorkTypeListState>(
+        builder: (context, state) {
+          return AdaptiveGridView(
+            padding: const EdgeInsets.all(10).copyWith(bottom: 75),
+            children: List.generate(
+              state.types.length,
+              (index) => WorkTypeTile(
+                type: state.types[index],
+                onTap: () => _onEdit(context, state.types[index]),
+              ),
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () async {
-          await viewmodel.onAdd(context);
-
-          if (mounted) setState(() {});
+        onPressed: () {
+          _onCreate(context);
         },
       ),
     );
   }
 
-  Widget _tile(int index) {
-    final type = viewmodel.types[index];
+  Future _onCreate(BuildContext context) async {
+    await TypeEditSheet.create(context);
 
-    final theme = Theme.of(context);
-    final scheem = theme.colorScheme;
+    final bloc = key.read<WorkTypeListBloc>();
 
-    final titleStyle = theme.textTheme.bodyLarge?.copyWith(
-      color: scheem.primary,
-    );
-    final subtitleStyle = theme.textTheme.bodySmall?.copyWith(
-      color: Colors.green[400],
-    );
+    bloc?.add(WorkTypeListLoadRequested());
+  }
 
-    return Card.outlined(
-      child: StretchedTile(
-        title: Text(type.name, style: titleStyle),
-        subtitle: Text(type.price.toString(), style: subtitleStyle),
-        onTap: () async {
-          await viewmodel.onTap(context, index);
+  Future _onEdit(BuildContext context, WorkType type) async {
+    await TypeEditSheet.edit(context, type);
 
-          if (mounted) setState(() {});
-        },
-      ),
-    );
+    final bloc = key.read<WorkTypeListBloc>();
+
+    bloc?.add(WorkTypeListLoadRequested());
   }
 }
