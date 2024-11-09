@@ -532,10 +532,7 @@ packages:
       sha256: "41a20518f0cb1256669420fdba0cd90d21561e560ac240f26ef8322e45bb7ed6"
       url: "https://pub.dev"
     source: hosted
-<<<<<<< HEAD
     version: "2.0.0"
-=======
-    version: "1.0.5"
   nested:
     dependency: transitive
     description:
@@ -544,7 +541,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
->>>>>>> ebd88b0 (feat: flutter pub add flutter_bloc)
   node_preamble:
     dependency: transitive
     description:
