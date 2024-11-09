@@ -21,6 +21,7 @@ class CalculationTypeDropdown extends StatelessWidget {
       initialSelection: initialSelection,
       leadingIcon: const Icon(Icons.calculate_outlined),
       onSelected: (value) => onSelected(value!),
+      expandedInsets: EdgeInsets.zero,
       dropdownMenuEntries: List.generate(
         values.length,
         (index) {
