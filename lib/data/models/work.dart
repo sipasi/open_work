@@ -16,4 +16,8 @@ class Work {
         'type': type.toJson(),
         'units': units.map((e) => e.value).toList(),
       };
+
+  Work deepCopy() {
+    return Work(type, units.toList());
+  }
 }

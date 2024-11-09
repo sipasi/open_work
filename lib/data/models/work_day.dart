@@ -25,4 +25,11 @@ class WorkDay {
       works: works ?? this.works,
     );
   }
+
+  WorkDay deepCopy() {
+    return WorkDay(
+      date: date,
+      works: works.map((e) => e.deepCopy()).toList(),
+    );
+  }
 }

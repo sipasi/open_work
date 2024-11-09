@@ -37,4 +37,13 @@ class WorkMonth {
       types: types ?? this.types,
     );
   }
+
+  WorkMonth deepCopy() {
+    return WorkMonth(
+      id: id,
+      date: date,
+      days: days.map((e) => e.copyWith()).toList(),
+      types: types.toList(),
+    );
+  }
 }
