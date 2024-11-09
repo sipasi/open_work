@@ -1,7 +1,11 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:open_work_flutter/data/models/work_type.dart';
+import 'package:open_work_flutter/services/navigation/material_navigator.dart';
 import 'package:open_work_flutter/services/result.dart';
+import 'package:open_work_flutter/theme/theme_extension.dart';
+import 'package:open_work_flutter/view/shared/input_fields/price_edit_field.dart';
+import 'package:open_work_flutter/view/shared/input_fields/text_edit_controller.dart';
 import 'package:open_work_flutter/view/shared/input_fields/text_edit_field.dart';
 
 import 'calculation_type_dropdown.dart';
@@ -12,7 +16,15 @@ class TypeEditSheet extends StatefulWidget {
 
   const TypeEditSheet({super.key, this.entity});
 
-  static Future<Result> show(BuildContext context, [WorkType? entity]) async {
+  static Future<Result> create(BuildContext context) async {
+    return _show(context);
+  }
+
+  static Future<Result> edit(BuildContext context, WorkType entity) async {
+    return _show(context, entity);
+  }
+
+  static Future<Result> _show(BuildContext context, [WorkType? entity]) async {
     final result = await showModalBottomSheet<Result>(
       context: context,
       isScrollControlled: true,
@@ -29,20 +41,34 @@ class TypeEditSheet extends StatefulWidget {
 class _TypeEditSheetState extends State<TypeEditSheet> {
   late final TypeEditSheetViewModel _viewmodel;
 
+  late final TextEditController _nameEdit;
+  late final TextEditController _priceEdit;
+
+  late final String _operationType;
+
   @override
   void initState() {
     super.initState();
 
-    _viewmodel = TypeEditSheetViewModel(widget.entity);
+    final entity = widget.entity;
+
+    _operationType = entity?.id == null ? 'Create' : 'Edit';
+
+    _viewmodel = TypeEditSheetViewModel(
+      typeStorage: GetIt.I.get(),
+      entity: entity,
+    );
+
+    _nameEdit = TextEditController.text(text: _viewmodel.name);
+    _priceEdit = TextEditController.text(text: _viewmodel.price);
   }
 
   @override
   Widget build(BuildContext context) {
-    final operationTypeStyle =
-        Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            );
+    final operationTypeStyle = context.textTheme.headlineMedium?.copyWith(
+      color: context.colorScheme.primary,
+      fontWeight: FontWeight.bold,
+    );
 
     return Padding(
       padding: const EdgeInsets.all(20).copyWith(
@@ -53,26 +79,30 @@ class _TypeEditSheetState extends State<TypeEditSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            _viewmodel.operationType,
+            _operationType,
             textAlign: TextAlign.center,
             style: operationTypeStyle,
           ),
           const SizedBox(height: 10),
           TextEditField(
-            controller: _viewmodel.nameEdit,
             label: 'name',
-            keyboardType: TextInputType.text,
+            controller: _nameEdit,
             border: const OutlineInputBorder(),
+            keyboardType: TextInputType.text,
+            onChanged: (value) => setState(() {
+              _viewmodel.setName(value);
+              _nameEdit.setErrorIfEmpty();
+            }),
           ),
           const SizedBox(height: 10),
-          TextEditField(
-            controller: _viewmodel.priceEdit,
+          PriceEditField(
             label: 'price',
-            keyboardType: const TextInputType.numberWithOptions(
-              signed: false,
-              decimal: true,
-            ),
+            controller: _priceEdit,
             border: const OutlineInputBorder(),
+            onChanged: (value) => setState(() {
+              _viewmodel.setPrice(value);
+              _priceEdit.setErrorIfEmpty();
+            }),
           ),
           const SizedBox(height: 10),
           CalculationTypeDropdown(
@@ -85,18 +115,29 @@ class _TypeEditSheetState extends State<TypeEditSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              widget.entity != null
-                  ? FilledButton.tonalIcon(
-                      icon: const Icon(Icons.delete),
-                      label: const Text('Delete'),
-                      onPressed: () => _viewmodel.onDelete(context),
-                    )
-                  : Container(),
-              const SizedBox(width: 20),
+              if (widget.entity != null)
+                FilledButton.tonalIcon(
+                  icon: const Icon(Icons.delete),
+                  label: const Text('Delete'),
+                  onPressed: () async {
+                    await _viewmodel.tryDelete();
+
+                    if (context.mounted) {
+                      MaterialNavigator.pop(context);
+                    }
+                  },
+                ),
+              if (widget.entity != null) const SizedBox(width: 20),
               FilledButton.tonalIcon(
                 icon: const Icon(Icons.save),
                 label: const Text('Save'),
-                onPressed: () => _viewmodel.onSave(context),
+                onPressed: () async {
+                  bool saved = await _viewmodel.trySubmit();
+
+                  if (saved && context.mounted) {
+                    MaterialNavigator.pop(context);
+                  }
+                },
               ),
             ],
           )
