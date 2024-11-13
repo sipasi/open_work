@@ -74,7 +74,7 @@ class ExportOptionsView extends StatelessWidget {
 
           final file = XFile.fromData(Uint8List.fromList(data));
 
-          final result = await Share.shareXFiles(
+          await Share.shareXFiles(
             [file],
             fileNameOverrides: [
               '${state.fileName}.${state.exportFormat.extension}'
