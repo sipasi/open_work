@@ -52,7 +52,7 @@ class HomePage extends StatelessWidget {
 
   Widget _getPageBy(HomeTab tab) => switch (tab) {
         HomeTab.types => WorkTypeListPage(),
-        HomeTab.months => const WorkMonthListPage(),
-        HomeTab.settings => const SettingsPage(),
+        HomeTab.months => WorkMonthListPage(),
+        HomeTab.settings => SettingsPage(),
       };
 }
