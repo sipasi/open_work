@@ -1,6 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
 import 'package:open_work_flutter/storage/month_storage.dart';
@@ -28,7 +30,7 @@ class SettingsImportBloc
       List<MonthImportModel> items = [];
 
       for (var file in event.files) {
-        final bytes = file;
+        final bytes = await bytesFromPlatformFile(file);
 
         final text = utf8.decode(bytes);
 
@@ -119,5 +121,15 @@ class SettingsImportBloc
     final futures = uniqueImportedTypes.map(storage.updateOrCreate);
 
     return Future.wait(futures);
+  }
+
+  Future<Uint8List> bytesFromPlatformFile(PlatformFile file) {
+    if (kIsWeb) return Future.value(file.bytes ?? Uint8List(0));
+
+    if (file.path == null) {
+      return Future.value(Uint8List(0));
+    }
+
+    return File(file.path!).readAsBytes();
   }
 }

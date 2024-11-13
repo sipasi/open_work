@@ -140,9 +140,17 @@ class ImportView extends StatelessWidget {
       allowedExtensions: ['json'],
     );
 
-    final files = result?.files.map((file) => file.bytes!).toList();
+    if (result == null || result.files.isEmpty) {
+      _bloc(context).add(
+        SettingsImportWaitFiles(),
+      );
 
-    _bloc(context).add(SettingsImportFilesPicked(files ?? []));
+      return;
+    }
+
+    _bloc(context).add(
+      SettingsImportFilesPicked(result.files),
+    );
   }
 
   TextStyle? _getLargeText(BuildContext context) {
@@ -151,5 +159,7 @@ class ImportView extends StatelessWidget {
     );
   }
 
-  SettingsImportBloc _bloc(BuildContext context) => context.read();
+  SettingsImportBloc _bloc(BuildContext context) {
+    return context.read();
+  }
 }
