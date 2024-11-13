@@ -50,8 +50,7 @@ final class ExportOptionsState {
   });
   const ExportOptionsState.initial(this.months)
       : fileName = defaultName,
-        exportMethod =
-            kIsWeb ? ExportMethod.localDevice : ExportMethod.localDevice,
+        exportMethod = kIsWeb ? ExportMethod.localDevice : ExportMethod.shared,
         exportQuantity = ExportQuantity.single,
         exportFormat = ExportFormat.json,
         folderLocation = FolderLocation.downloads,

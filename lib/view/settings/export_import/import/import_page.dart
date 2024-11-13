@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -142,7 +140,7 @@ class ImportView extends StatelessWidget {
       allowedExtensions: ['json'],
     );
 
-    final files = result?.paths.map((path) => File(path!)).toList();
+    final files = result?.files.map((file) => file.bytes!).toList();
 
     _bloc(context).add(SettingsImportFilesPicked(files ?? []));
   }

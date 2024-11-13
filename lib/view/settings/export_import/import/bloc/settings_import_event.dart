@@ -7,7 +7,7 @@ sealed class SettingsImportEvent {
 final class SettingsImportWaitFiles extends SettingsImportEvent {}
 
 final class SettingsImportFilesPicked extends SettingsImportEvent {
-  final List<File> files;
+  final List<Uint8List> files;
 
   SettingsImportFilesPicked(this.files);
 }

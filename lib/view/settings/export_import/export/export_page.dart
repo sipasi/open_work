@@ -33,8 +33,8 @@ class ExportView extends StatelessWidget {
           titleBuilder: (item) => Text('${item.date.year}-${item.date.month}'),
           fab: state.selectables.selectionsNotEmpty
               ? FloatingActionButton.extended(
-                  label: const Text('Share'),
-                  icon: const Icon(Icons.share_outlined),
+                  label: const Text('Next'),
+                  icon: const Icon(Icons.navigate_next),
                   onPressed: () => MaterialNavigator.push(
                     context,
                     (context) => ExportOptionsPage(

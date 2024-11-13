@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
@@ -28,7 +28,7 @@ class SettingsImportBloc
       List<MonthImportModel> items = [];
 
       for (var file in event.files) {
-        final bytes = await file.readAsBytes();
+        final bytes = file;
 
         final text = utf8.decode(bytes);
 

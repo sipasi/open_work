@@ -1,15 +1,19 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
 import 'package:open_work_flutter/services/export/formatter/format_options.dart';
 import 'package:open_work_flutter/services/export/work_month/work_month_export_service.dart';
+import 'package:open_work_flutter/services/export/work_month/work_month_formatter_factory.dart';
 import 'package:open_work_flutter/services/navigation/material_navigator.dart';
 import 'package:open_work_flutter/view/settings/export_import/export/option/bloc/export_options_bloc.dart';
 import 'package:open_work_flutter/view/settings/export_import/export/option/widgets/download_section.dart';
 import 'package:open_work_flutter/view/settings/export_import/export/option/widgets/naming_section.dart';
 import 'package:open_work_flutter/view/shared/dialogs/waiting_dialog.dart';
 import 'package:open_work_flutter/view/shared/input_fields/text_edit_controller.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ExportOptionsPage extends StatelessWidget {
   final TextEditController nameContoller = TextEditController.text();
@@ -36,23 +40,47 @@ class ExportOptionsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<ExportOptionsBloc, ExportOptionsState>(
       listenWhen: (previous, current) =>
-          current.status == ExportStatus.readyToExport,
+          current.status == ExportStatus.readyToExport &&
+          current.months.isNotEmpty,
       listener: (context, state) async {
-        final export = GetIt.I.get<WorkMonthExportService>();
+        late Future future;
 
-        final future = export.exportTo(
-          state.folderLocation,
-          state.months,
-          state.fileName.trim(),
-          state.exportFormat,
-          const FormatOptions(),
-        );
+        if (state.exportMethod == ExportMethod.localDevice) {
+          final export = GetIt.I.get<WorkMonthExportService>();
 
-        await WaitingDialog.show(
-          context: context,
-          title: 'Downloading...',
-          future: future,
-        );
+          future = export.exportTo(
+            state.folderLocation,
+            state.months,
+            state.fileName.trim(),
+            state.exportFormat,
+            const FormatOptions(),
+          );
+
+          await WaitingDialog.show(
+            context: context,
+            title: 'Downloading...',
+            future: future,
+          );
+        }
+        if (state.exportMethod == ExportMethod.shared) {
+          final factory = WorkMonthFormatterFactory();
+
+          final formatter = factory.create(state.exportFormat);
+
+          final data = await formatter.format(
+            state.months,
+            const FormatOptions(),
+          );
+
+          final file = XFile.fromData(Uint8List.fromList(data));
+
+          final result = await Share.shareXFiles(
+            [file],
+            fileNameOverrides: [
+              '${state.fileName}.${state.exportFormat.extension}'
+            ],
+          );
+        }
 
         MaterialNavigator.pop(context, times: 2);
       },
