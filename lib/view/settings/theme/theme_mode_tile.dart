@@ -1,19 +1,39 @@
 import 'package:flutter/material.dart';
 
-import '../theme_controller.dart';
-
 class ThemeModeTile extends StatelessWidget {
-  final ThemeController viewmodel;
+  final ThemeMode mode;
+  final void Function(ThemeMode value) onChanged;
 
-  const ThemeModeTile({super.key, required this.viewmodel});
+  const ThemeModeTile({
+    super.key,
+    required this.mode,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: const Text('Dark'),
-      trailing: Switch(
-        value: viewmodel.isDark,
-        onChanged: (value) => viewmodel.onModeChanged(context, value),
+      title: SegmentedButton(
+        showSelectedIcon: false,
+        segments: [
+          ButtonSegment(
+            value: ThemeMode.dark,
+            icon: Icon(Icons.dark_mode),
+            label: Text('dark'),
+          ),
+          ButtonSegment(
+            value: ThemeMode.light,
+            icon: Icon(Icons.light_mode),
+            label: Text('light'),
+          ),
+          ButtonSegment(
+            value: ThemeMode.system,
+            icon: Icon(Icons.devices),
+            label: Text('system'),
+          ),
+        ],
+        selected: {mode},
+        onSelectionChanged: (set) => onChanged(set.first),
       ),
     );
   }

@@ -1,57 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:open_work_flutter/services/navigation/material_navigator.dart';
+import 'package:open_work_flutter/storage/month_storage.dart';
+import 'package:open_work_flutter/storage/type_storage.dart';
+import 'package:open_work_flutter/theme/color/color_seed.dart';
 import 'package:open_work_flutter/theme/theme_extension.dart';
+import 'package:open_work_flutter/theme/theme_storage.dart';
+import 'package:open_work_flutter/theme/theme_switcher.dart';
+import 'package:open_work_flutter/view/settings/bloc/settings_bloc.dart';
+import 'package:open_work_flutter/view/settings/export_import/export/export_page.dart';
+import 'package:open_work_flutter/view/settings/export_import/import/import_page.dart';
+import 'package:open_work_flutter/view/settings/summary/all_summary_view.dart';
 import 'package:open_work_flutter/view/settings/theme/theme_color_tile.dart';
 import 'package:open_work_flutter/view/settings/theme/theme_mode_tile.dart';
+import 'package:open_work_flutter/view/settings/theme/theme_tile_helper.dart';
+import 'package:open_work_flutter/view/shared/dialogs/color_list_dialog.dart';
+import 'package:open_work_flutter/view/shared/dialogs/delete_dialog.dart';
+import 'package:open_work_flutter/view/shared/dialogs/waiting_dialog.dart';
 
-import 'settings_view_model.dart';
-
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => SettingsPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => SettingsBloc(),
+      child: SettingsView(),
+    );
+  }
 }
 
-class SettingsPageState extends State<SettingsPage> {
-  late final SettingsViewModel viewmodel;
-
-  @override
-  void initState() {
-    super.initState();
-
-    viewmodel = SettingsViewModel(setState);
-  }
+class SettingsView extends StatelessWidget {
+  const SettingsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const EdgeInsetsGeometry padding = EdgeInsets.only(top: 10.0);
-
     return ListView(
-      padding: padding,
+      padding: const EdgeInsets.only(top: 10.0),
       children: [
-        ThemeModeTile(viewmodel: viewmodel.themeController),
-        ThemeColorTile(viewmodel: viewmodel.themeController),
+        BlocBuilder<SettingsBloc, SettingsState>(
+          builder: (context, state) {
+            return ThemeModeTile(
+              mode: state.mode,
+              onChanged: (value) => _onThemeModeChanged(context, value),
+            );
+          },
+        ),
+        BlocBuilder<SettingsBloc, SettingsState>(
+          builder: (context, state) {
+            return ThemeColorTile(
+              seed: state.seed,
+              onTap: () => _onThemeColorChanged(context, state.seed),
+            );
+          },
+        ),
         const Divider(),
         ListTile(
           leading: const Icon(Icons.file_download_outlined),
           title: OutlinedButton(
             child: const Text('Import'),
-            onPressed: () => viewmodel.toImport(context),
+            onPressed: () => MaterialNavigator.push(
+              context,
+              (context) => const ImportPage(),
+            ),
           ),
         ),
         ListTile(
           leading: const Icon(Icons.file_upload_outlined),
           title: OutlinedButton(
             child: const Text('Export'),
-            onPressed: () => viewmodel.toExport(context),
-          ),
-        ),
-        const Divider(),
-        ListTile(
-          leading: const Icon(Icons.file_download_outlined),
-          title: OutlinedButton(
-            child: const Text('Migration'),
-            onPressed: () => viewmodel.toMigration(context),
+            onPressed: () => MaterialNavigator.push(
+              context,
+              (context) => const ExportPage(),
+            ),
           ),
         ),
         const Divider(),
@@ -59,7 +81,10 @@ class SettingsPageState extends State<SettingsPage> {
           leading: const Icon(Icons.summarize_outlined),
           title: OutlinedButton(
             child: const Text('Summarize All'),
-            onPressed: () => viewmodel.toSummarizeAll(context),
+            onPressed: () => MaterialNavigator.push(
+              context,
+              (context) => const AllSummaryPage(),
+            ),
           ),
         ),
         const Divider(),
@@ -69,78 +94,72 @@ class SettingsPageState extends State<SettingsPage> {
             style: OutlinedButton.styleFrom(
               foregroundColor: context.colorScheme.error,
             ),
-            onPressed: () => viewmodel.deleteAll(context),
+            onPressed: () => _onDeleteAll(context),
             child: const Text('Delete all'),
           ),
         ),
       ],
     );
   }
+
+  SettingsBloc _bloc(BuildContext context) {
+    return context.read<SettingsBloc>();
+  }
+
+  Future _onThemeModeChanged(BuildContext context, ThemeMode next) async {
+    final bloc = _bloc(context);
+
+    ThemeTileHelper.setTheme(
+      context: context,
+      mode: next,
+    );
+
+    bloc.add(SettingsThemeModeChanged(next));
+  }
+
+  Future _onThemeColorChanged(BuildContext context, ColorSeed current) async {
+    final value = await ColorListDialog.show(
+      context: context,
+      current: current,
+    );
+
+    if (value == null || value == current || context.mounted == false) {
+      return;
+    }
+
+    final switcher = ThemeSwitcher.of(context);
+
+    final newTheme = switcher.theme!.copyWith(seed: value);
+
+    ThemeStorage.set(newTheme);
+
+    ThemeTileHelper.setTheme(
+      context: context,
+      seed: value,
+    );
+
+    _bloc(context).add(SettingsThemeColorChanged(value));
+  }
+
+  Future _onDeleteAll(BuildContext context) async {
+    bool result = await DeleteDialog.showMessage(
+      context: context,
+      message: 'This action delete all months and types',
+    );
+
+    if (result == false || context.mounted == false) {
+      return;
+    }
+
+    await WaitingDialog.show(
+      context: context,
+      title: 'Deleting...',
+      future: Future(() {
+        final types = GetIt.I.get<TypeStorage>();
+        final months = GetIt.I.get<MonthStorage>();
+
+        return Future.wait([types.clear(), months.clear()]);
+      }),
+    );
+  }
 }
-
-
-// ListTile(
-//           leading: const Icon(Icons.file_upload_outlined),
-//           title: OutlinedButton(
-//             child: const Text('migrate'),
-//             onPressed: () async {
-//               final old = await FilePicker.platform.pickFiles();
-//
-//               final oldFile = File(old!.paths.first!);
-//
-//               final oldJson = json.decode(await oldFile.readAsString());
-//
-//               final days = (oldJson['days'] as List<dynamic>).map((dayJson) {
-//                 final dayMap = dayJson as Map<String, dynamic>;
-//
-//                 final works =
-//                     (dayMap['works'] as List<dynamic>).map((workJson) {
-//                   final calc =
-//                       workJson['calculation'] as String == 'commaSeparator'
-//                           ? CalculationType.itemsCount
-//                           : CalculationType.numbersSum;
-//
-//                   WorkType type = WorkType(
-//                     name: workJson['type'],
-//                     calculation: calc,
-//                     price: workJson['price'],
-//                   );
-//
-//                   final description = (workJson['description'] as String);
-//
-//                   final units = description
-//                       .split(',')
-//                       .map(
-//                         (e) => WorkUnit(e.trim()),
-//                       )
-//                       .toList();
-//
-//                   return Work(type, units);
-//                 }).toList();
-//
-//                 return WorkDay(
-//                   date: DateTime.parse(dayMap['date'] as String),
-//                   works: works,
-//                 );
-//               }).toList();
-//
-//               final newMonth = WorkMonth(
-//                 date: DateTime.parse(oldJson['date'] as String),
-//                 days: days,
-//                 types: [],
-//               );
-//
-//               final asdd = newMonth.toJson();
-//
-//               final ddasd = json.encode(asdd);
-//
-//               final a = File('C:\\Users\\tanks\\Desktop\\2024-7-new.json');
-//
-//               await a.create();
-//
-//               await a.writeAsString(ddasd);
-//
-//               int d = 2;
-//             },
-//           ),
-//         ),

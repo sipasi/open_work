@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
-
-import '../theme_controller.dart';
+import 'package:open_work_flutter/theme/color/color_seed.dart';
 
 class ThemeColorTile extends StatelessWidget {
-  final ThemeController viewmodel;
+  final ColorSeed seed;
+  final void Function() onTap;
 
-  const ThemeColorTile({super.key, required this.viewmodel});
+  const ThemeColorTile({
+    super.key,
+    required this.seed,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: const Text('Color'),
+      subtitle: Text(seed.name),
       trailing: Icon(
         Icons.color_lens,
-        color: viewmodel.seed.color,
+        color: seed.color,
       ),
-      onTap: () => viewmodel.showColorDialog(context),
+      onTap: onTap,
     );
   }
 }

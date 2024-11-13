@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:open_work_flutter/data/models/work_month.dart';
-import 'package:open_work_flutter/view/settings/json/json_parcer.dart';
+import 'package:open_work_flutter/view/settings/export_import/data/json/json_parcer.dart';
 
 class WorkMonthJsonParcer extends JsonParcer<List<WorkMonth>> {
   @override

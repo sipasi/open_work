@@ -1,12 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
 import 'package:open_work_flutter/services/export/export_format.dart';
-import 'package:open_work_flutter/services/export/formatter/format_options.dart';
 import 'package:open_work_flutter/services/export/path_factory/folder_location.dart';
-import 'package:open_work_flutter/services/export/work_month/work_month_export_service.dart';
-import 'package:open_work_flutter/view/shared/dialogs/waiting_dialog.dart';
 import 'package:open_work_flutter/view/shared/input_fields/text_edit_controller.dart';
 
 class ExportOptionsViewModel {
@@ -75,32 +71,6 @@ class ExportOptionsViewModel {
     }
 
     _format = value;
-  }
-
-  Future perform(BuildContext context) {
-    if (canOnlyDownload) {
-      return _onDownload(context);
-    }
-
-    return _download ? _onDownload(context) : _onShare(context);
-  }
-
-  Future _onDownload(BuildContext context) {
-    final export = GetIt.I.get<WorkMonthExportService>();
-
-    final future = export.exportTo(
-      location,
-      _groups,
-      name.textTrim,
-      format,
-      const FormatOptions(),
-    );
-
-    return WaitingDialog.show(
-      context: context,
-      title: 'Downloading...',
-      future: future,
-    );
   }
 
   Future _onShare(BuildContext context) async {

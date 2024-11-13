@@ -1,1 +1,0 @@
-enum CalculationTypeOld { hour, commaSeparator }
