@@ -16,25 +16,35 @@ import 'package:open_work_flutter/view/shared/input_fields/text_edit_controller.
 import 'package:share_plus/share_plus.dart';
 
 class ExportOptionsPage extends StatelessWidget {
-  final TextEditController nameContoller = TextEditController.text();
-
   final List<WorkMonth> months;
 
-  ExportOptionsPage({super.key, required this.months});
+  const ExportOptionsPage({super.key, required this.months});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ExportOptionsBloc(months: months),
-      child: ExportOptionsView(nameContoller: nameContoller),
+      child: ExportOptionsView(),
     );
   }
 }
 
-class ExportOptionsView extends StatelessWidget {
-  final TextEditController nameContoller;
+class ExportOptionsView extends StatefulWidget {
+  const ExportOptionsView({super.key});
 
-  const ExportOptionsView({super.key, required this.nameContoller});
+  @override
+  State<ExportOptionsView> createState() => _ExportOptionsViewState();
+}
+
+class _ExportOptionsViewState extends State<ExportOptionsView> {
+  final TextEditController nameContoller = TextEditController.text();
+
+  @override
+  void initState() {
+    super.initState();
+
+    nameContoller.setText(_bloc(context).state.fileName);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +108,7 @@ class ExportOptionsView extends StatelessWidget {
     return Column(
       children: [
         NamingSection(
-          fileNamePlaceholder: ExportOptionsState.defaultName,
+          nameController: nameContoller,
           exportQuantity: state.exportQuantity,
           canExportAsManyFiles: state.canExportAsManyFiles,
           onQuantityChange: (value) => _bloc(context).add(

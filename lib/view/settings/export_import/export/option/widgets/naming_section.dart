@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:open_work_flutter/view/settings/export_import/export/option/bloc/export_options_bloc.dart';
+import 'package:open_work_flutter/view/shared/input_fields/text_edit_controller.dart';
 import 'package:open_work_flutter/view/shared/input_fields/text_edit_field.dart';
 
 class NamingSection extends StatelessWidget {
-  final String fileNamePlaceholder;
+  final TextEditController nameController;
 
   final bool canExportAsManyFiles;
 
@@ -14,7 +15,7 @@ class NamingSection extends StatelessWidget {
 
   const NamingSection({
     super.key,
-    required this.fileNamePlaceholder,
+    required this.nameController,
     required this.canExportAsManyFiles,
     required this.exportQuantity,
     required this.onQuantityChange,
@@ -55,9 +56,9 @@ class NamingSection extends StatelessWidget {
   Widget _name() {
     return ListTile(
       title: TextEditField(
+        controller: nameController,
         border: const OutlineInputBorder(),
         label: 'File name',
-        hint: fileNamePlaceholder,
         onChanged: (value) => onNameChange(value),
       ),
     );
