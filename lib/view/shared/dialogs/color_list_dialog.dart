@@ -3,10 +3,9 @@ import 'package:open_work_flutter/theme/color/color_seed.dart';
 import 'package:open_work_flutter/view/shared/dialogs/list_view_dialog.dart';
 
 class ColorListDialog {
-  static Future show({
+  static Future<ColorSeed?> show({
     required BuildContext context,
     required ColorSeed current,
-    required void Function(ColorSeed value) selected,
   }) async {
     const values = ColorSeed.values;
 
@@ -29,10 +28,6 @@ class ColorListDialog {
       },
     );
 
-    if (value == null) {
-      return;
-    }
-
-    selected(value);
+    return value;
   }
 }

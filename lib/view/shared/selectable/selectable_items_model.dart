@@ -1,47 +1,60 @@
-class SelectableItemsModel<T> {
+typedef CopyWithDelegate<T> = T Function(T item);
+
+class SelectablesModel<T> {
   final Set<int> _selections;
 
-  final List<T> items;
+  final List<T> _items;
 
-  bool get allSelected => _selections.length == items.length;
+  final CopyWithDelegate<T> _copyWith;
 
-  bool get isNotEmpty => _selections.isNotEmpty;
+  int get selected => _selections.length;
+  int get count => _items.length;
 
-  int get selections => _selections.length;
+  bool get allSelected => _selections.length == _items.length;
 
-  SelectableItemsModel(this.items) : _selections = {};
+  bool get selectionsNotEmpty => _selections.isNotEmpty;
 
-  List<T> getSelected() {
-    final selected = _selections.map((index) => items[index]).toList();
+  SelectablesModel({
+    required List<T> items,
+    CopyWithDelegate<T>? copyWith,
+  })  : _items = items,
+        _copyWith = copyWith ?? ((item) => item),
+        _selections = {};
+  SelectablesModel._(this._items, this._copyWith, this._selections);
 
-    return selected;
-  }
-
-  void onTileTap(bool contains, int index) {
-    if (contains) {
-      _selections.remove(index);
-
-      return;
-    }
-    _selections.add(index);
-  }
-
-  void onSelectAll() {
-    if (allSelected) {
-      _selections.clear();
-      return;
-    }
-
-    _selections.clear();
-
-    _selections.addAll(List.generate(items.length, (index) => index));
+  T at(int index) {
+    return _items[index];
   }
 
   bool selectedAt(int index) {
     return _selections.contains(index);
   }
 
-  T at(int index) {
-    return items[index];
+  List<T> getSelected() {
+    return _selections.map(at).toList();
+  }
+
+  void select(int index) {
+    bool added = _selections.add(index);
+
+    if (added == false) _selections.remove(index);
+  }
+
+  void selectAll() {
+    bool needSelectAll = allSelected == false;
+
+    _selections.clear();
+
+    if (needSelectAll) {
+      _selections.addAll(List.generate(count, (index) => index));
+    }
+  }
+
+  SelectablesModel<T> copy() {
+    return SelectablesModel<T>._(
+      _items.map(_copyWith).toList(),
+      _copyWith,
+      _selections.toSet(),
+    );
   }
 }

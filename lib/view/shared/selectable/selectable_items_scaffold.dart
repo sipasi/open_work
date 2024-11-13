@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_work_flutter/view/shared/selectable/selectable_items_model.dart';
 
 import 'selectable_grid_view.dart';
 
@@ -6,18 +7,17 @@ class SelectableItemsScaffold<T> extends StatelessWidget {
   final int count;
   final bool allSelected;
 
+  final Widget? fab;
+
+  final void Function(int index) onSelect;
   final void Function() onSelectAll;
 
   final T Function(int index) itemAt;
 
   final bool Function(int index) selectedAt;
 
-  final void Function(bool contains, int index) onTap;
-
   final Widget Function(T item) titleBuilder;
   final Widget Function(T item)? subtitleBuilder;
-
-  final Widget? fab;
 
   const SelectableItemsScaffold({
     super.key,
@@ -27,10 +27,35 @@ class SelectableItemsScaffold<T> extends StatelessWidget {
     required this.onSelectAll,
     required this.itemAt,
     required this.selectedAt,
-    required this.onTap,
+    required this.onSelect,
     required this.titleBuilder,
     this.subtitleBuilder,
   });
+
+  factory SelectableItemsScaffold.from({
+    required SelectablesModel<T> model,
+    required void Function(int index) onSelect,
+    required void Function() onSelectAll,
+    required Widget Function(T item) titleBuilder,
+    Widget Function(T item)? subtitleBuilder,
+    Widget? fab,
+  }) {
+    return SelectableItemsScaffold<T>(
+      count: model.count,
+      allSelected: model.allSelected,
+      titleBuilder: titleBuilder,
+      subtitleBuilder: subtitleBuilder,
+      fab: fab,
+      itemAt: model.at,
+      selectedAt: model.selectedAt,
+      onSelectAll: () {
+        onSelectAll();
+      },
+      onSelect: (index) {
+        onSelect(index);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +76,7 @@ class SelectableItemsScaffold<T> extends StatelessWidget {
       floatingActionButton: fab,
       body: SelectableGridView<T>(
         count: count,
-        onTap: onTap,
+        onSelect: onSelect,
         itemAt: itemAt,
         selectedAt: selectedAt,
         titleBuilder: titleBuilder,

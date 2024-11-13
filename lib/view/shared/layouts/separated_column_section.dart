@@ -17,15 +17,27 @@ class SeparatedColumnSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(title: title),
+        SeparatedColumn(
+          separator: (context, index) => const Divider(height: 0),
+          children: List.generate(length, builder),
+        ),
+      ],
+    );
+  }
+
+  static Widget outlined({
+    required Widget title,
+    required int length,
+    required Widget Function(int index) builder,
+  }) {
     return Card.outlined(
-      child: Column(
-        children: [
-          ListTile(title: title),
-          SeparatedColumn(
-            separator: (context, index) => const Divider(height: 0),
-            children: List.generate(length, builder),
-          ),
-        ],
+      child: SeparatedColumnSection(
+        title: title,
+        length: length,
+        builder: builder,
       ),
     );
   }

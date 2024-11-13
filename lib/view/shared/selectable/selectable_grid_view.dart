@@ -8,7 +8,7 @@ class SelectableGridView<T> extends StatelessWidget {
 
   final bool Function(int index) selectedAt;
 
-  final void Function(bool contains, int index) onTap;
+  final void Function(int index) onSelect;
 
   final Widget Function(T item) titleBuilder;
   final Widget Function(T item)? subtitleBuilder;
@@ -16,7 +16,7 @@ class SelectableGridView<T> extends StatelessWidget {
   const SelectableGridView({
     super.key,
     required this.count,
-    required this.onTap,
+    required this.onSelect,
     required this.itemAt,
     required this.selectedAt,
     required this.titleBuilder,
@@ -44,7 +44,7 @@ class SelectableGridView<T> extends StatelessWidget {
       trailing: Icon(Icons.circle, color: contains ? null : Colors.transparent),
       titleAlignment: ListTileTitleAlignment.top,
       selected: contains,
-      onTap: () => onTap(contains, index),
+      onTap: () => onSelect(index),
     );
   }
 }

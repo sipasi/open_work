@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:open_work_flutter/view/shared/input_fields/text_edit_controller.dart';
 
 class TextEditField extends StatelessWidget {
-  final TextEditController controller;
+  final TextEditController? controller;
 
   final String? label;
   final String? hint;
@@ -24,7 +24,7 @@ class TextEditField extends StatelessWidget {
 
   const TextEditField({
     super.key,
-    required this.controller,
+    this.controller,
     this.label,
     this.hint,
     this.style,
@@ -41,8 +41,8 @@ class TextEditField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller.controller,
-      focusNode: controller.focusNode,
+      controller: controller?.controller,
+      focusNode: controller?.focusNode,
       style: style,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
@@ -50,7 +50,7 @@ class TextEditField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        errorText: controller.error,
+        errorText: controller?.error,
         border: border,
       ),
       inputFormatters: inputFormatters,
