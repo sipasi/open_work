@@ -14,6 +14,29 @@ class SummaryModel {
     required this.types,
     required this.works,
   });
+
+  const SummaryModel.empty()
+      : this(
+          total: 0,
+          calculations: const [],
+          types: const [],
+          works: const [],
+        );
+
+  SummaryModel copyWith({
+    double? total,
+    List<CalculationInfo>? calculations,
+    List<TypeInfo>? types,
+    List<WorkInfo>? works,
+  }) {
+    return SummaryModel(
+      total: total ?? this.total,
+      calculations:
+          calculations ?? this.calculations.map((e) => e.copy()).toList(),
+      types: types ?? this.types.map((e) => e.copy()).toList(),
+      works: works ?? this.works.map((e) => e.copy()).toList(),
+    );
+  }
 }
 
 class CalculationInfo {
@@ -28,6 +51,15 @@ class CalculationInfo {
     required this.sum,
     required this.units,
   });
+
+  CalculationInfo copy() {
+    return CalculationInfo(
+      calculation: calculation,
+      count: count,
+      sum: sum,
+      units: units.toList(),
+    );
+  }
 }
 
 class TypeInfo {
@@ -46,6 +78,15 @@ class TypeInfo {
       : count = 0,
         sum = 0,
         units = const [];
+
+  TypeInfo copy() {
+    return TypeInfo(
+      type: type,
+      count: count,
+      sum: sum,
+      units: units.toList(),
+    );
+  }
 }
 
 class WorkInfo {
@@ -54,6 +95,10 @@ class WorkInfo {
   final List<UnitDaysPairs> summaries;
 
   WorkInfo(this.type, this.summaries);
+
+  WorkInfo copy() {
+    return WorkInfo(type, summaries.map((e) => e.copy()).toList());
+  }
 }
 
 class UnitDaysPairs {
@@ -61,4 +106,8 @@ class UnitDaysPairs {
   final List<DateTime> dates;
 
   UnitDaysPairs(this.unit, this.dates);
+
+  UnitDaysPairs copy() {
+    return UnitDaysPairs(unit, dates.toList());
+  }
 }
