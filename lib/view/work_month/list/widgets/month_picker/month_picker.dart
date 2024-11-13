@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:open_work_flutter/theme/theme_extension.dart';
 import 'package:open_work_flutter/view/shared/dialogs/delete_dialog.dart';
 
 import 'month_grid_view.dart';
@@ -42,14 +43,16 @@ class _MonthPickerState extends State<MonthPicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 20),
-          child: Row(
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             children: [
               Expanded(
-                child: IconButton(
+                child: IconButton.filledTonal(
                   icon: const Icon(Icons.navigate_before),
                   onPressed: () => _changeYear(value: year - 1),
                 ),
@@ -59,29 +62,31 @@ class _MonthPickerState extends State<MonthPicker> {
                 child: Text(
                   '$year',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: context.textTheme.headlineMedium?.copyWith(
+                    color: context.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Expanded(
-                child: IconButton(
+                child: IconButton.filledTonal(
                   icon: const Icon(Icons.navigate_next),
                   onPressed: () => _changeYear(value: year + 1),
                 ),
               ),
             ],
           ),
-        ),
-        Expanded(
-          child: MonthGridView(
-            list: monthes,
-            onDeleted: (value) => _onDeleted(context, value),
-            onSelected: (value) => _onSelected(value),
-          ),
-        )
-      ],
+          SizedBox(height: 10),
+          Expanded(
+            flex: 0,
+            child: MonthGridView(
+              list: monthes,
+              onDeleted: (value) => _onDeleted(context, value),
+              onSelected: (value) => _onSelected(value),
+            ),
+          )
+        ],
+      ),
     );
   }
 

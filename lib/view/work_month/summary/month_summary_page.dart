@@ -1,44 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
-import 'package:open_work_flutter/data/summaries/month_summary.dart';
-import 'package:open_work_flutter/data/summaries/summary_for.dart';
-import 'package:open_work_flutter/data/summaries/summary_model.dart';
+import 'package:open_work_flutter/view/shared/work_summary/summary_view.dart';
+import 'package:open_work_flutter/view/work_month/summary/bloc/work_month_summary_bloc.dart';
 
-import 'summary_view.dart';
-
-class MonthSummaryPage extends StatefulWidget {
+class MonthSummaryPage extends StatelessWidget {
   final WorkMonth month;
-  final SummaryFor<WorkMonth> summary;
-
   const MonthSummaryPage({
     super.key,
     required this.month,
-    this.summary = const MonthSummary(),
   });
 
   @override
-  State<MonthSummaryPage> createState() => _MonthSummaryPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => WorkMonthSummaryBloc(monthStorage: GetIt.I.get())
+        ..add(WorkMonthSummaryLoadRequested(
+          monthId: month.id!,
+        )),
+      child: MonthSummaryView(date: month.date),
+    );
+  }
 }
 
-class _MonthSummaryPageState extends State<MonthSummaryPage> {
-  late final SummaryModel model;
+class MonthSummaryView extends StatelessWidget {
+  final DateFormat _monthFormat = DateFormat.MMMM();
 
-  @override
-  void initState() {
-    super.initState();
+  final DateTime date;
 
-    model = widget.summary.create(widget.month);
-  }
+  MonthSummaryView({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Summary'),
+        title: Text(_monthFormat.format(date)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: SummaryView(summary: model),
+          child: BlocBuilder<WorkMonthSummaryBloc, WorkMonthSummaryState>(
+            builder: (context, state) {
+              return SummaryView(
+                summary: state.model,
+              );
+            },
+          ),
         ),
       ),
     );

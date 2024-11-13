@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../theme/theme_extension.dart';
-import 'work_month_details.dart';
+import '../../../../theme/theme_extension.dart';
+import '../work_month_details.dart';
 
 class MonthInfoTile extends StatelessWidget {
   final WorkMonthDetails month;

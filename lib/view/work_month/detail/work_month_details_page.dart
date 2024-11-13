@@ -1,117 +1,108 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:open_work_flutter/data/models/work_day.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
 import 'package:open_work_flutter/services/navigation/material_navigator.dart';
-import 'package:open_work_flutter/services/result.dart';
-import 'package:open_work_flutter/storage/month_storage.dart';
 import 'package:open_work_flutter/view/work_day/edit/day_edit_page.dart';
-import 'package:open_work_flutter/view/work_month/detail/day_tile.dart';
+import 'package:open_work_flutter/view/work_month/detail/cubit/work_month_detail_cubit.dart';
+import 'package:open_work_flutter/view/work_month/detail/widgets/day_list_view.dart';
 import 'package:open_work_flutter/view/work_month/edit/work_month_edit_page.dart';
 import 'package:open_work_flutter/view/work_month/summary/month_summary_page.dart';
 
-class WorkMonthDetailsPage extends StatefulWidget {
-  final WorkMonth month;
+class WorkMonthDetailsPage extends StatelessWidget {
+  final int id;
+  final DateTime date;
 
-  const WorkMonthDetailsPage({super.key, required this.month});
+  WorkMonthDetailsPage({super.key, required WorkMonth month})
+      : id = month.id!,
+        date = month.date;
 
   @override
-  State<WorkMonthDetailsPage> createState() => _WorkMonthDetailsPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => WorkMonthDetailCubit(
+        monthStorage: GetIt.I.get(),
+      )..loadAll(id),
+      child: WorkMonthDetailsView(
+        id: id,
+        date: date,
+      ),
+    );
+  }
 }
 
-class _WorkMonthDetailsPageState extends State<WorkMonthDetailsPage> {
-  late final WorkMonthDetailsViewModel viewmodel;
+class WorkMonthDetailsView extends StatelessWidget {
+  final DateFormat _dayFormat = DateFormat.MMMM();
 
-  final storage = GetIt.I.get<MonthStorage>();
+  final int id;
+  final DateTime date;
 
-  @override
-  void initState() {
-    super.initState();
-
-    viewmodel = WorkMonthDetailsViewModel(widget.month);
-  }
+  WorkMonthDetailsView({
+    super.key,
+    required this.id,
+    required this.date,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(viewmodel.formattedDate),
+        title: Text(_dayFormat.format(date)),
         actions: [
           IconButton(
-            onPressed: () =>
-                viewmodel.onEditTap(context).then((value) => setState(() {})),
             icon: const Icon(Icons.edit_document),
+            onPressed: () => onEditTap(context),
           ),
         ],
       ),
-      body: ListView.separated(
-        itemCount: viewmodel.days,
-        padding: const EdgeInsets.only(bottom: 85),
-        separatorBuilder: (_, __) => const Divider(),
-        itemBuilder: (context, index) {
-          final date = viewmodel.dayAt(index);
-
-          return DayTile(
-            day: date,
-            onTap: () => viewmodel
-                .onDayTap(context, date)
-                .then((value) => setState(() {})),
+      body: BlocBuilder<WorkMonthDetailCubit, WorkMonthDetailState>(
+        builder: (context, state) {
+          return DayListView(
+            days: state.days,
+            onTap: (day) => onDayTap(context, day),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => viewmodel.onSummarizeTap(context),
         label: const Text('Summarize'),
+        onPressed: () => onSummarizeTap(context),
       ),
     );
   }
-}
-
-class WorkMonthDetailsViewModel {
-  final DateFormat _dayFormat = DateFormat.MMMM();
-
-  WorkMonth _copy;
-
-  int get days => _copy.days.length;
-  DateTime get date => _copy.date;
-
-  String get formattedDate => _dayFormat.format(date);
-
-  WorkMonthDetailsViewModel(WorkMonth month)
-      : _copy = WorkMonth.fromJson(month.toJson());
-
-  WorkDay dayAt(int index) => _copy.days[index];
 
   Future onDayTap(BuildContext context, WorkDay day) async {
-    final result = await MaterialNavigator.push(
+    final bloc = context.read<WorkMonthDetailCubit>();
+
+    await MaterialNavigator.push(
       context,
-      (context) => DayEditPage(month: _copy, day: day),
+      (context) => DayEditPage(month: bloc.state.month, day: day),
     );
 
-    result.contained<WorkMonth>((item) {
-      _copy = item;
-    });
+    await bloc.loadAll(id);
   }
 
-  Future onSummarizeTap(BuildContext context) {
-    return MaterialNavigator.push(
+  Future onSummarizeTap(BuildContext context) async {
+    final bloc = context.read<WorkMonthDetailCubit>();
+
+    await MaterialNavigator.push(
       context,
-      (context) => MonthSummaryPage(
-        month: _copy,
-      ),
+      (context) => MonthSummaryPage(month: bloc.state.month),
     );
+
+    await bloc.loadAll(id);
   }
 
   Future onEditTap(BuildContext context) async {
-    final result = await MaterialNavigator.push(
+    final bloc = context.read<WorkMonthDetailCubit>();
+
+    await MaterialNavigator.push(
       context,
-      (context) => WorkMonthEditPage(
-        month: _copy,
-      ),
+      (context) => WorkMonthEditPage(month: bloc.state.month),
     );
 
-    result.modified<WorkMonth>((item) => _copy = item);
+    await bloc.loadAll(id);
   }
 }

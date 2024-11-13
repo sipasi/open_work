@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_work_flutter/theme/theme_extension.dart';
-import 'package:open_work_flutter/view/work_month/list/month_picker/month_list.dart';
-import 'package:open_work_flutter/view/work_month/list/month_picker/month_value.dart';
+import 'package:open_work_flutter/view/work_month/list/widgets/month_picker/month_list.dart';
+import 'package:open_work_flutter/view/work_month/list/widgets/month_picker/month_value.dart';
 
 class MonthGridView extends StatelessWidget {
   final MonthList list;
@@ -21,6 +21,7 @@ class MonthGridView extends StatelessWidget {
     ColorScheme scheme = context.colorScheme;
 
     return GridView.count(
+      shrinkWrap: true,
       crossAxisCount: 4,
       children: List.generate(
         list.length,
@@ -41,10 +42,7 @@ class MonthGridView extends StatelessWidget {
                     side: BorderSide(color: scheme.primary),
                   ),
                 ),
-                child: Center(
-                    child: Text(
-                  '${month.value}',
-                )),
+                child: Center(child: Text(month.value.toString())),
               ),
             ),
           );

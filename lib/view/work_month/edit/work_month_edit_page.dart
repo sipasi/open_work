@@ -1,147 +1,200 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
+import 'package:open_work_flutter/services/navigation/material_navigator.dart';
 import 'package:open_work_flutter/theme/theme_extension.dart';
 import 'package:open_work_flutter/view/shared/layouts/separated_column.dart';
 import 'package:open_work_flutter/view/shared/layouts/separated_column_section.dart';
-import 'package:open_work_flutter/view/work_month/summary/type_summary_view.dart';
+import 'package:open_work_flutter/view/work_month/edit/bloc/work_month_edit_bloc.dart';
+import 'package:open_work_flutter/view/work_month/edit/data/supported_type.dart';
+import 'package:open_work_flutter/view/work_month/edit/data/template_type.dart';
+import 'package:open_work_flutter/view/work_month/edit/widgets/work_month_edit_dialog.dart';
+import 'package:open_work_flutter/view/work_month/shared/widgets/work_unit_formula.dart';
 
-import '../../shared/futures/future_view.dart';
-import 'work_month_edit_view_model.dart';
-
-class WorkMonthEditPage extends StatefulWidget {
+class WorkMonthEditPage extends StatelessWidget {
   final WorkMonth month;
 
   const WorkMonthEditPage({super.key, required this.month});
 
   @override
-  State<WorkMonthEditPage> createState() => _WorkMonthEditPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => WorkMonthEditBloc(
+        monthStorage: GetIt.I.get(),
+        typeStorage: GetIt.I.get(),
+      )..add(WorkMonthEditLoadRequested(month.id!)),
+      child: WorkMonthEditView(
+        id: month.id!,
+        date: month.date,
+        daysInMonth: month.days.length,
+      ),
+    );
+  }
 }
 
-class _WorkMonthEditPageState extends State<WorkMonthEditPage> {
-  final DateFormat _dayFormat = DateFormat.MMMM();
+class WorkMonthEditView extends StatelessWidget {
+  static final DateFormat _monthFormat = DateFormat.MMMM();
 
-  late final WorkMonthEditViewModel viewmodel;
+  final int id;
+  final DateTime date;
+  final int daysInMonth;
 
-  @override
-  void initState() {
-    super.initState();
-
-    viewmodel = WorkMonthEditViewModel(
-      month: widget.month,
-      monthStorage: GetIt.I.get(),
-      typeStorage: GetIt.I.get(),
-    )..init();
-  }
+  const WorkMonthEditView({
+    super.key,
+    required this.id,
+    required this.date,
+    required this.daysInMonth,
+  });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = context.textTheme;
-    final scheem = context.colorScheme;
+    final colorScheme = context.colorScheme;
 
-    final title = textTheme.headlineMedium;
-    final removedTitle = title?.copyWith(color: context.colorScheme.error);
-
-    final templates = viewmodel.templates;
-    final supported = viewmodel.supported;
-    final supportedDeleted = viewmodel.supportedDeleted;
+    final templateTitle = textTheme.titleMedium?.copyWith(
+      color: colorScheme.secondary,
+      fontWeight: FontWeight.bold,
+    );
+    final supportedTitle = templateTitle?.copyWith(
+      color: colorScheme.primary,
+    );
+    final removedTitle = templateTitle?.copyWith(
+      color: colorScheme.error,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            '${_dayFormat.format(widget.month.date)} - ${widget.month.days.length}'),
+        title: Text('${_monthFormat.format(date)} - $daysInMonth'),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => viewmodel.onSave(context),
+        onPressed: () {
+          _bloc(context).add(WorkMonthEditSaveRequested(id));
+        },
         label: const Text('Save'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 75),
-        child: SeparatedColumn(
-          separator: (context, index) => const SizedBox(height: 20),
-          children: [
-            FutureView(
-              future: viewmodel.canBeAddedLoading,
-              success: (context, _) {
-                if (templates.isEmpty) {
-                  return Container();
-                }
+        child: BlocConsumer<WorkMonthEditBloc, WorkMonthEditState>(
+          listener: (context, state) async {
+            if (state.navigationState == NavigationState.pop) {
+              final result = await WorkMonthEditDialog.changesOnSave(
+                context: context,
+                removed: state.removed,
+                added: state.supported.whereType<TemplateType>().toList(),
+              );
 
-                return SeparatedColumnSection(
-                  title: Text('Can be addedd', style: title),
-                  length: templates.length,
-                  builder: (index) {
-                    final pair = viewmodel.templates[index];
-
-                    onTap() => setState(() => viewmodel.onTamplateTap(index));
-
-                    return ListTile(
-                      title: Text(pair.type.name),
-                      subtitle: Text(pair.type.price.toString()),
-                      selected: pair.selected,
-                      trailing: Checkbox(
-                        value: pair.selected,
-                        onChanged: (value) => onTap(),
-                      ),
-                      onTap: onTap,
-                    );
-                  },
-                );
-              },
-            ),
-            if (supported.isNotEmpty)
-              SeparatedColumnSection(
-                title: Text('Supported', style: title),
-                length: supported.length,
-                builder: (index) {
-                  final pair = supported[index];
-
-                  onTap() => viewmodel
-                      .onSupportedTap(context, index)
-                      .then((value) => setState(() {}));
-
-                  final Widget tile = switch (pair) {
-                    SupportedType _ => TypeSummaryTile(
-                        info: pair.info,
-                        trailing: const Icon(Icons.delete),
-                        onTap: onTap,
-                      ),
-                    TemplateType _ => ListTile(
-                        title: Text(pair.type.name),
-                        subtitle: Text(pair.type.price.toString()),
-                        trailing: const Icon(Icons.remove),
-                        onTap: onTap,
-                      ),
-                    _ => const Text('error')
-                  };
-
-                  return tile;
-                },
-              ),
-            if (supportedDeleted.isNotEmpty)
-              SeparatedColumnSection(
-                title: Text('Removed on save', style: removedTitle),
-                length: supportedDeleted.length,
-                builder: (index) {
-                  final pair = viewmodel.supportedDeleted[index];
-
-                  return TypeSummaryTile(
-                    info: pair.info,
-                    trailing: const Icon(Icons.restore_page_outlined),
-                    subtitleStyle: textTheme.bodyMedium?.copyWith(
-                      color: scheem.error,
-                    ),
-                    onTap: () => setState(
-                      () => viewmodel.onDeletedTap(index),
-                    ),
-                  );
-                },
-              ),
-          ],
+              if (context.mounted && result) MaterialNavigator.pop(context);
+            }
+          },
+          builder: (context, state) {
+            return SeparatedColumn(
+              separator: (context, index) => const SizedBox(height: 20),
+              children: [
+                if (state.templates.isNotEmpty)
+                  SeparatedColumnSection(
+                    title: Text('Templates', style: templateTitle),
+                    length: state.templates.length,
+                    builder: (index) => _templateBuilder(context, index),
+                  ),
+                if (state.supported.isNotEmpty)
+                  SeparatedColumnSection(
+                    title: Text('Supported', style: supportedTitle),
+                    length: state.supported.length,
+                    builder: (index) => _supportedBuilder(context, index),
+                  ),
+                if (state.removed.isNotEmpty)
+                  SeparatedColumnSection(
+                    title: Text('Removed on save', style: removedTitle),
+                    length: state.removed.length,
+                    builder: (index) => _removeBuilder(context, index),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+
+  Widget _templateBuilder(BuildContext context, int index) {
+    final state = _bloc(context).state;
+
+    final pair = state.templates[index];
+
+    return ListTile(
+      title: Text(pair.type.name),
+      subtitle: Text(pair.type.price.toString()),
+      trailing: pair.selected
+          ? Icon(Icons.check_box_outlined)
+          : Icon(Icons.check_box_outline_blank),
+      textColor: context.colorScheme.secondary,
+      selected: pair.selected,
+      onTap: () => _bloc(context).add(WorkMonthEditTamplatePressed(index)),
+    );
+  }
+
+  Widget _supportedBuilder(BuildContext context, int index) {
+    final state = _bloc(context).state;
+
+    final pair = state.supported[index];
+
+    final Widget tile = switch (pair) {
+      SupportedType _ => ListTile(
+          title: Text(pair.type.name),
+          trailing: const Icon(Icons.delete),
+          textColor: context.colorScheme.primary,
+          subtitle: WorkUnitFormula.auto(
+            type: pair.type,
+            units: pair.units,
+          ),
+          onTap: () => _onSupportedTap(context, index),
+        ),
+      TemplateType _ => ListTile(
+          title: Text(pair.type.name),
+          subtitle: Text(pair.type.price.toString()),
+          trailing: const Icon(Icons.remove),
+          textColor: context.colorScheme.secondary,
+          onTap: () => _onSupportedTap(context, index),
+        ),
+      _ => const Text('error')
+    };
+
+    return tile;
+  }
+
+  Widget _removeBuilder(BuildContext context, int index) {
+    final state = _bloc(context).state;
+
+    final pair = state.removed[index];
+
+    return ListTile(
+      trailing: const Icon(Icons.restore_page_outlined),
+      title: Text(pair.type.name),
+      subtitle: WorkUnitFormula.auto(type: pair.type, units: pair.units),
+      onTap: () => _bloc(context).add(WorkMonthEditRemovedPressed(index)),
+    );
+  }
+
+  Future _onSupportedTap(BuildContext context, int index) async {
+    final info = _bloc(context).state.supported[index];
+
+    if (info is SupportedType) {
+      bool result = await WorkMonthEditDialog.deleteSupportedType(
+        context: context,
+        type: info,
+      );
+
+      if (result == false) {
+        return;
+      }
+    }
+
+    _bloc(context).add(WorkMonthEditSupportedPressed(index));
+  }
+
+  WorkMonthEditBloc _bloc(BuildContext context) =>
+      context.read<WorkMonthEditBloc>();
 }
