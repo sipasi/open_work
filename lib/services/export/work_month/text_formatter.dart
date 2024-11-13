@@ -8,6 +8,7 @@ import 'package:open_work_flutter/services/export/work_month/work_month_formatte
 
 class TextFormatter extends WorkMonthFormatter {
   final _yearMonthFormatter = DateFormat(DateFormat.YEAR_MONTH);
+  final _dayFormatter = DateFormat(DateFormat.DAY);
 
   static const WorksSummarizer _worksSummarizer = WorksSummarizer();
 
@@ -33,14 +34,13 @@ class TextFormatter extends WorkMonthFormatter {
 
     buffer.writeln();
 
-    buffer.writeln('days:');
-
     final worksInfo = _worksSummarizer.summarize(data.days);
 
     for (var entity in worksInfo) {
-      buffer.write(entity.type);
-      buffer.write(' - ');
+      buffer.write(entity.type.name);
+      buffer.write('(');
       buffer.write(entity.summaries.length);
+      buffer.write(')');
 
       if (entity.summaries.isNotEmpty) {
         buffer.write(' - ');
@@ -63,11 +63,12 @@ class TextFormatter extends WorkMonthFormatter {
 
         buffer.write(' - ');
 
-        buffer.write(element.dates.join(', '));
+        buffer.write(element.dates.map(_dayFormatter.format).join(', '));
 
         buffer.writeln();
       }
 
+      buffer.writeln();
       buffer.writeln();
     }
   }
