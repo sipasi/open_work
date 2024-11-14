@@ -181,7 +181,7 @@ class WorkMonthEditView extends StatelessWidget {
   Future _onSupportedTap(BuildContext context, int index) async {
     final info = _bloc(context).state.supported[index];
 
-    if (info is SupportedType) {
+    if (info is SupportedType && info.units.isNotEmpty) {
       bool result = await WorkMonthEditDialog.deleteSupportedType(
         context: context,
         type: info,
