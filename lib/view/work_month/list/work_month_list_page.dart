@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:open_work_flutter/view/shared/bloc/global_key_bloc_reader.dart';
 import 'package:open_work_flutter/view/shared/layouts/adaptive_grid_view.dart';
 import 'package:open_work_flutter/view/work_month/detail/work_month_details_page.dart';
@@ -19,13 +18,7 @@ class WorkMonthListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => WorkMonthListBloc(
-        monthStorage: GetIt.I.get(),
-        typeStorage: GetIt.I.get(),
-      )..add(WorkMonthListLoadRequested()),
-      child: WorkMonthListView(contextAccessKey: _contextAccessKey),
-    );
+    return WorkMonthListView(contextAccessKey: _contextAccessKey);
   }
 }
 

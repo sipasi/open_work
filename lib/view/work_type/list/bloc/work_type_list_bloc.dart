@@ -6,11 +6,12 @@ part 'work_type_list_event.dart';
 part 'work_type_list_state.dart';
 
 class WorkTypeListBloc extends Bloc<WorkTypeListEvent, WorkTypeListState> {
-  WorkTypeListBloc(TypeStorage storage) : super(WorkTypeListState()) {
+  WorkTypeListBloc({required TypeStorage typeStorage})
+      : super(WorkTypeListState()) {
     on<WorkTypeListLoadRequested>((event, emit) async {
       emit(state.copyWith());
 
-      final types = await storage.getAll();
+      final types = await typeStorage.getAll();
 
       emit(state.copyWith(types: types));
     });

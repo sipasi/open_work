@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:open_work_flutter/data/models/work_type.dart';
 import 'package:open_work_flutter/view/shared/bloc/global_key_bloc_reader.dart';
 import 'package:open_work_flutter/view/shared/layouts/adaptive_grid_view.dart';
@@ -17,13 +16,7 @@ class WorkTypeListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        return WorkTypeListBloc(GetIt.I.get())
-          ..add(WorkTypeListLoadRequested());
-      },
-      child: WorkTypeListView(contextAccessKey: _contextAccessKey),
-    );
+    return WorkTypeListView(contextAccessKey: _contextAccessKey);
   }
 }
 

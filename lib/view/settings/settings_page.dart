@@ -24,10 +24,7 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SettingsBloc(),
-      child: SettingsView(),
-    );
+    return SettingsView();
   }
 }
 
