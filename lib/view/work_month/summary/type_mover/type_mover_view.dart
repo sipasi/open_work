@@ -56,20 +56,22 @@ class TypeMoverView extends StatelessWidget {
           appBar: AppBar(
             title: Text(state.unit.value),
           ),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ListTile(
-                title: Text('current type'),
-                subtitle: Text(state.moveFrom.name),
-              ),
-              ListTile(
-                title: Text('move to type'),
-                subtitle: Text(state.moveTo.name),
-                onTap: () => _moveToHandler(context, state),
-              ),
-              _list(state, context),
-            ],
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  title: Text('current type'),
+                  subtitle: Text(state.moveFrom.name),
+                ),
+                ListTile(
+                  title: Text('move to type'),
+                  subtitle: Text(state.moveTo.name),
+                  onTap: () => _moveToHandler(context, state),
+                ),
+                _list(state, context),
+              ],
+            ),
           ),
           floatingActionButton: _fab(state, context),
         );
