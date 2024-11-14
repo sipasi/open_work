@@ -1,4 +1,4 @@
-import 'package:open_work_flutter/collection/linq_iterable.dart';
+import 'package:open_work_flutter/collection/extension/linq_iterable.dart';
 import 'package:open_work_flutter/data/calculations/work_calculator.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
 import 'package:open_work_flutter/data/summaries/calculations_summarizer.dart';

@@ -1,4 +1,4 @@
-import 'package:open_work_flutter/collection/linq_iterable.dart';
+import 'package:open_work_flutter/collection/extension/linq_iterable.dart';
 import 'package:open_work_flutter/data/models/work_day.dart';
 import 'package:open_work_flutter/data/models/work_type.dart';
 import 'package:open_work_flutter/data/summaries/summary_model.dart';
