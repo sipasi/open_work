@@ -9,7 +9,13 @@ import 'package:open_work_flutter/view/shared/work_summary/table_builder.dart';
 class WorkSummaryView extends StatelessWidget {
   final List<WorkInfo> summary;
 
-  const WorkSummaryView({super.key, required this.summary});
+  final void Function(WorkInfo info, UnitDaysPairs pairs)? onTap;
+
+  const WorkSummaryView({
+    super.key,
+    required this.summary,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +59,7 @@ class WorkSummaryView extends StatelessWidget {
                       titleTextStyle: titleStyle,
                       subtitle: Text(days, textAlign: TextAlign.center),
                       contentPadding: EdgeInsets.zero,
-                      onTap: () {},
+                      onTap: onTap == null ? null : () => onTap!(info, data),
                     );
                   },
                 ),

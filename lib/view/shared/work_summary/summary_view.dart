@@ -8,7 +8,9 @@ import 'package:open_work_flutter/view/shared/work_summary/work_summary_view.dar
 class SummaryView extends StatelessWidget {
   final SummaryModel summary;
 
-  const SummaryView({super.key, required this.summary});
+  final void Function(WorkInfo info, UnitDaysPairs pairs)? onUnitDaysPairTap;
+
+  const SummaryView({super.key, required this.summary, this.onUnitDaysPairTap});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +57,10 @@ class SummaryView extends StatelessWidget {
           ),
         ),
         Card.outlined(
-          child: WorkSummaryView(summary: summary.works),
+          child: WorkSummaryView(
+            summary: summary.works,
+            onTap: onUnitDaysPairTap,
+          ),
         ),
       ],
     );
