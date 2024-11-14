@@ -67,7 +67,10 @@ class WorkMonthListView extends StatelessWidget {
 
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => WorkMonthDetailsPage(month: month),
+        builder: (context) => WorkMonthDetailsPage(
+          id: month.id!,
+          date: month.date,
+        ),
       ),
     );
 

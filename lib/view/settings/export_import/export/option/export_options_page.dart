@@ -91,8 +91,7 @@ class _ExportOptionsViewState extends State<ExportOptionsView> {
             ],
           );
         }
-
-        MaterialNavigator.pop(context, times: 2);
+        if (context.mounted) MaterialNavigator.pop(context, times: 2);
       },
       builder: (context, state) {
         return Scaffold(

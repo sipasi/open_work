@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:open_work_flutter/data/models/work_day.dart';
-import 'package:open_work_flutter/data/models/work_month.dart';
 import 'package:open_work_flutter/services/navigation/material_navigator.dart';
 import 'package:open_work_flutter/view/work_day/edit/day_edit_page.dart';
 import 'package:open_work_flutter/view/work_month/detail/cubit/work_month_detail_cubit.dart';
@@ -16,9 +15,11 @@ class WorkMonthDetailsPage extends StatelessWidget {
   final int id;
   final DateTime date;
 
-  WorkMonthDetailsPage({super.key, required WorkMonth month})
-      : id = month.id!,
-        date = month.date;
+  const WorkMonthDetailsPage({
+    super.key,
+    required this.id,
+    required this.date,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +36,12 @@ class WorkMonthDetailsPage extends StatelessWidget {
 }
 
 class WorkMonthDetailsView extends StatelessWidget {
-  final DateFormat _dayFormat = DateFormat.MMMM();
+  static final DateFormat _dayFormat = DateFormat.MMMM();
 
   final int id;
   final DateTime date;
 
-  WorkMonthDetailsView({
+  const WorkMonthDetailsView({
     super.key,
     required this.id,
     required this.date,

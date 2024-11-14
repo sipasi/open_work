@@ -34,7 +34,7 @@ class ImportView extends StatelessWidget {
           await _watingFilesListener(context);
         }
 
-        if (state.importedSuccessful) {
+        if (state.importedSuccessful && context.mounted) {
           MaterialNavigator.pop(context);
         }
       },
@@ -70,18 +70,20 @@ class ImportView extends StatelessWidget {
 
   Widget _waiting(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          const LinearProgressIndicator(),
-          Expanded(
-            child: Center(
-              child: Text(
-                'Wait for file ...',
-                style: _getLargeText(context),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const LinearProgressIndicator(),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Wait for file ...',
+                  style: _getLargeText(context),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -141,16 +143,15 @@ class ImportView extends StatelessWidget {
     );
 
     if (result == null || result.files.isEmpty) {
-      _bloc(context).add(
-        SettingsImportWaitFiles(),
-      );
+      if (context.mounted) MaterialNavigator.pop(context);
 
       return;
     }
-
-    _bloc(context).add(
-      SettingsImportFilesPicked(result.files),
-    );
+    if (context.mounted) {
+      _bloc(context).add(
+        SettingsImportFilesPicked(result.files),
+      );
+    }
   }
 
   TextStyle? _getLargeText(BuildContext context) {

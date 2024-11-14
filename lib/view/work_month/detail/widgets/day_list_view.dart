@@ -7,7 +7,11 @@ class DayListView extends StatelessWidget {
 
   final void Function(WorkDay day) onTap;
 
-  const DayListView({super.key, required this.days, required this.onTap});
+  const DayListView({
+    super.key,
+    required this.days,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

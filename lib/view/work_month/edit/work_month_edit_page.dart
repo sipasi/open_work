@@ -191,8 +191,9 @@ class WorkMonthEditView extends StatelessWidget {
         return;
       }
     }
-
-    _bloc(context).add(WorkMonthEditSupportedPressed(index));
+    if (context.mounted) {
+      _bloc(context).add(WorkMonthEditSupportedPressed(index));
+    }
   }
 
   WorkMonthEditBloc _bloc(BuildContext context) =>
