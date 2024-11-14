@@ -18,7 +18,3 @@ class ReadonlyList<T> extends IReadonlyList<T> {
   @override
   Iterator<T> get iterator => _list.iterator;
 }
-
-extension ReadonlyListExtension<T> on List<T> {
-  ReadonlyList<T> asReadonly() => ReadonlyList(this);
-}

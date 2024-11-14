@@ -1,5 +1,7 @@
+import 'package:open_work_flutter/collection/extension/property_getter.dart';
+
 extension LinqIterable<T> on Iterable<T> {
-  num sumBy(num Function(T element) selector) {
+  num sumBy(PropertyGetter<T, num> selector) {
     num sum = 0;
 
     for (var element in this) {
@@ -9,7 +11,7 @@ extension LinqIterable<T> on Iterable<T> {
     return sum;
   }
 
-  Map<Key, List<T>> groupBy<Key>(Key Function(T item) ketSelector) {
+  Map<Key, List<T>> groupBy<Key>(PropertyGetter<T, Key> ketSelector) {
     var map = <Key, List<T>>{};
 
     for (var element in this) {
