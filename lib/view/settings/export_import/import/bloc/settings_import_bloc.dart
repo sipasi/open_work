@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_work_flutter/collection/extension/list_sort.dart';
 import 'package:open_work_flutter/data/models/work_month.dart';
 import 'package:open_work_flutter/storage/month_storage.dart';
 import 'package:open_work_flutter/storage/type_storage.dart';
@@ -15,9 +17,12 @@ part 'settings_import_state.dart';
 
 class SettingsImportBloc
     extends Bloc<SettingsImportEvent, SettingsImportState> {
+  final MonthStorage monthStorage;
+  final TypeStorage typeStorage;
+
   SettingsImportBloc({
-    required MonthStorage monthStorage,
-    required TypeStorage typeStorage,
+    required this.monthStorage,
+    required this.typeStorage,
   }) : super(SettingsImportState.initial()) {
     on<SettingsImportWaitFiles>((event, emit) {
       emit(state.copyWith(
@@ -26,38 +31,7 @@ class SettingsImportBloc
       ));
     });
 
-    on<SettingsImportFilesPicked>((event, emit) async {
-      List<MonthImportModel> items = [];
-
-      for (var file in event.files) {
-        final bytes = await bytesFromPlatformFile(file);
-
-        final text = utf8.decode(bytes);
-
-        final futures = ImportExportJson.month.from(text).map((e) async {
-          return MonthImportModel(
-            month: e,
-            exist: await monthStorage.containsMonth(e.date),
-          );
-        });
-
-        final list = await Future.wait(futures);
-
-        list.sort(
-          (a, b) => b.month.date.compareTo(a.month.date),
-        );
-
-        items.addAll(list);
-      }
-
-      emit(state.copyWith(
-        filesWaitingStatus: FilesWaitingStatus.success,
-        selections: SelectablesModel<MonthImportModel>(
-          items: items,
-          copyWith: (item) => item.copyWith(),
-        ),
-      ));
-    });
+    on<SettingsImportFilesPicked>(_onFilesPicked);
 
     on<SettingsImportSelectAllPressed>((event, emit) {
       emit(
@@ -80,23 +54,67 @@ class SettingsImportBloc
       );
     });
 
-    on<SettingsImportRequested>((event, emit) async {
-      final selected = state.selectables.getSelected();
+    on<SettingsImportRequested>(_onImportRequested);
+  }
 
-      if (state.existedSkip) {
-        selected.removeWhere((element) => element.exist);
-      }
+  FutureOr<void> _onFilesPicked(
+    SettingsImportFilesPicked event,
+    Emitter<SettingsImportState> emit,
+  ) async {
+    List<MonthImportModel> items = [];
 
-      await importMonths(monthStorage, selected);
+    for (var file in event.files) {
+      final bytes = await bytesFromPlatformFile(file);
 
-      if (state.addTypesToStorage) {
-        await importTypes(typeStorage, selected);
-      }
+      List<MonthImportModel> list = await bytesToMonthModel(bytes);
 
-      emit(state.copyWith(
-        importStatus: ImportStatus.imported,
-      ));
+      list.sortDescBy((item) => item.month.date);
+
+      items.addAll(list);
+    }
+
+    emit(state.copyWith(
+      filesWaitingStatus: FilesWaitingStatus.success,
+      selections: SelectablesModel<MonthImportModel>(
+        items: items,
+        copyWith: (item) => item.copyWith(),
+      ),
+    ));
+  }
+
+  Future<List<MonthImportModel>> bytesToMonthModel(Uint8List bytes) async {
+    final text = utf8.decode(bytes);
+
+    final futures = ImportExportJson.month.from(text).map((e) async {
+      return MonthImportModel(
+        month: e,
+        exist: await monthStorage.containsMonth(e.date),
+      );
     });
+
+    final list = await Future.wait(futures);
+    return list;
+  }
+
+  Future _onImportRequested(
+    SettingsImportRequested event,
+    Emitter<SettingsImportState> emit,
+  ) async {
+    final selected = state.selectables.getSelected();
+
+    if (state.existedSkip) {
+      selected.removeWhere((element) => element.exist);
+    }
+
+    await importMonths(monthStorage, selected);
+
+    if (state.addTypesToStorage) {
+      await importTypes(typeStorage, selected);
+    }
+
+    emit(state.copyWith(
+      importStatus: ImportStatus.imported,
+    ));
   }
 
   Future importMonths(MonthStorage storage, List<MonthImportModel> models) {

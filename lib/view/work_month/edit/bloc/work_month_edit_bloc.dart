@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_work_flutter/data/summaries/month_summary_extension.dart';
 import 'package:open_work_flutter/storage/month_storage.dart';
@@ -10,98 +12,132 @@ part 'work_month_edit_event.dart';
 part 'work_month_edit_state.dart';
 
 class WorkMonthEditBloc extends Bloc<WorkMonthEditEvent, WorkMonthEditState> {
+  final MonthStorage monthStorage;
+  final TypeStorage typeStorage;
+
   WorkMonthEditBloc({
-    required MonthStorage monthStorage,
-    required TypeStorage typeStorage,
+    required this.monthStorage,
+    required this.typeStorage,
   }) : super(WorkMonthEditState.empty()) {
-    on<WorkMonthEditLoadRequested>((event, emit) async {
-      final month = await monthStorage.getBy(event.id);
+    on<WorkMonthEditLoadRequested>(_onLoadRequested);
 
-      int pairId = 0;
+    on<WorkMonthEditSaveRequested>(_onSaveRequested);
 
-      final templates = (await typeStorage.getAll())
-          .where((element) => month!.types.contains(element) == false)
-          .map((e) => TemplateType(pairId++, e))
-          .toList();
+    on<WorkMonthEditTamplatePressed>(_onTamplatePressed);
+    on<WorkMonthEditSupportedPressed>(_onSupportedPressed);
+    on<WorkMonthEditRemovedPressed>(_onRemovedPressed);
+  }
 
-      final supported = month!
-          .summarizeTypes()
-          .map((e) => SupportedType(pairId++, e))
-          .toList();
+  Future _onLoadRequested(
+    WorkMonthEditLoadRequested event,
+    Emitter<WorkMonthEditState> emit,
+  ) async {
+    final month = await monthStorage.getBy(event.id);
 
-      emit(state.copyWith(
-        id: event.id,
-        templates: templates,
-        supported: supported,
-      ));
-    });
+    if (month == null) {
+      return;
+    }
 
-    on<WorkMonthEditSaveRequested>((event, emit) async {
-      final typesToDeleted =
-          state.removed.map((e) => e.type).toList(growable: false);
+    int pairId = 0;
 
-      final typesToAdd =
-          state.supported.whereType<TemplateType>().map((e) => e.type);
+    final templates = (await typeStorage.getAll())
+        .where((element) => month.types.contains(element) == false)
+        .map((e) => TemplateType(pairId++, e))
+        .toList();
 
-      final month = await monthStorage.getBy(event.id);
+    final supported = month
+        .summarizeTypes()
+        .map(
+          (e) => SupportedType(pairId++, e),
+        )
+        .toList();
 
-      for (var day in month!.days) {
-        day.works.removeWhere(
-          (work) => typesToDeleted.contains(work.type),
-        );
-      }
+    emit(state.copyWith(
+      id: event.id,
+      templates: templates,
+      supported: supported,
+    ));
+  }
 
-      month.types.removeWhere(
-        (type) => typesToDeleted.contains(type),
+  Future _onSaveRequested(
+    WorkMonthEditSaveRequested event,
+    Emitter<WorkMonthEditState> emit,
+  ) async {
+    final typesToDeleted =
+        state.removed.map((e) => e.type).toList(growable: false);
+
+    final typesToAdd =
+        state.supported.whereType<TemplateType>().map((e) => e.type);
+
+    final month = await monthStorage.getBy(event.id);
+
+    for (var day in month!.days) {
+      day.works.removeWhere(
+        (work) => typesToDeleted.contains(work.type),
       );
+    }
 
-      month.types.addAll(typesToAdd);
+    month.types.removeWhere(
+      (type) => typesToDeleted.contains(type),
+    );
 
-      await monthStorage.updateOrCreate(month);
+    month.types.addAll(typesToAdd);
 
-      emit(state.copyWith(navigationState: NavigationState.pop));
-    });
+    await monthStorage.updateOrCreate(month);
 
-    on<WorkMonthEditTamplatePressed>((event, emit) {
-      final newState = state.deepCopy();
+    emit(state.copyWith(navigationState: NavigationState.pop));
+  }
 
-      final template = newState.templates[event.index];
+  void _onTamplatePressed(
+    WorkMonthEditTamplatePressed event,
+    Emitter<WorkMonthEditState> emit,
+  ) {
+    final newState = state.deepCopy();
 
-      template.selected
-          ? newState.supported.remove(template)
-          : newState.supported.add(template);
+    final template = newState.templates[event.index];
 
-      newState.templates[event.index] = template.revertSelected();
+    template.selected
+        ? newState.supported.remove(template)
+        : newState.supported.add(template);
 
-      emit(newState);
-    });
-    on<WorkMonthEditSupportedPressed>((event, emit) {
-      final newState = state.deepCopy();
+    newState.templates[event.index] = template.revertSelected();
 
-      final info = newState.supported[event.index];
+    emit(newState);
+  }
 
-      if (info is SupportedType) {
-        newState.supported.remove(info);
+  void _onSupportedPressed(
+    WorkMonthEditSupportedPressed event,
+    Emitter<WorkMonthEditState> emit,
+  ) {
+    final newState = state.deepCopy();
 
-        newState.removed.add(info);
-      } else if (info is TemplateType) {
-        newState.supported.remove(info);
+    final PairType type = newState.supported[event.index];
 
-        final templateIndex = newState.templates.indexOf(info);
+    if (type is SupportedType) {
+      newState.supported.remove(type);
 
-        newState.templates[templateIndex] = info.copyWithSelected(false);
-      }
+      newState.removed.add(type);
+    } else if (type is TemplateType) {
+      newState.supported.remove(type);
 
-      emit(newState);
-    });
-    on<WorkMonthEditRemovedPressed>((event, emit) {
-      final newState = state.deepCopy();
+      final templateIndex = newState.templates.indexOf(type);
 
-      final info = newState.removed.removeAt(event.index);
+      newState.templates[templateIndex] = type.copyWithSelected(false);
+    }
 
-      newState.supported.add(info);
+    emit(newState);
+  }
 
-      emit(newState);
-    });
+  void _onRemovedPressed(
+    WorkMonthEditRemovedPressed event,
+    Emitter<WorkMonthEditState> emit,
+  ) {
+    final newState = state.deepCopy();
+
+    final info = newState.removed.removeAt(event.index);
+
+    newState.supported.add(info);
+
+    emit(newState);
   }
 }
