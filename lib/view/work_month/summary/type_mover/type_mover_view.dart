@@ -61,11 +61,11 @@ class TypeMoverView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ListTile(
-                  title: Text('current type'),
+                  title: Text('from'),
                   subtitle: Text(state.moveFrom.name),
                 ),
                 ListTile(
-                  title: Text('move to type'),
+                  title: Text('move to'),
                   subtitle: Text(state.moveTo.name),
                   onTap: () => _moveToHandler(context, state),
                 ),
